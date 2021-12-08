@@ -153,15 +153,18 @@ public class JMorfSdkExample {
                                                                     }
                                                                     ourTags = list.toArray(new String[0]);
 
-                                                                    // Получаем морфологические характеристики из тега в корпусе
                                                                     String[] markTags = characteristics.getAttributes().getNamedItem("gr").getNodeValue()
                                                                             .replaceAll("-PRO", "").replaceAll("PRO", "")
-                                                                            .replaceAll("anom", "").replaceAll("distort", "")
+                                                                            .replaceAll("distort", "").replaceAll("persn", "")
+                                                                            .replaceAll("patrn", "").replaceAll("indic", "")
+                                                                            .replaceAll("imper", "").replaceAll("abbr", "")
                                                                             .replaceAll("ciph", "").replaceAll("INIT", "")
-                                                                            .replaceAll("abbr", "").replaceAll("persn", "")
-                                                                            .replaceAll("patrn", "").replaceAll("famn", "")
-                                                                            .replaceAll("zoon", "")/*.replaceAll("act", "")
-																			.replaceAll("pass", "").replaceAll("med", "")*/
+                                                                            .replaceAll("anom", "").replaceAll("famn", "")
+                                                                            .replaceAll("zoon", "").replaceAll("pass", "")
+                                                                            .replaceAll("inan", "").replaceAll("anim", "")
+                                                                            .replaceAll("intr", "").replaceAll("tran", "")
+                                                                            .replaceAll("act", "").replaceAll("ipf", "")
+                                                                            .replaceAll("med", "").replaceAll("pf", "")
                                                                             .split("[,=]");
 
                                                                     // Убираем пустые и null значения из массива
