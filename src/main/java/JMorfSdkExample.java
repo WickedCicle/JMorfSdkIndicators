@@ -33,7 +33,7 @@ public class JMorfSdkExample {
         ArrayList<String> texts = new ArrayList<>();
 
         // Заполняем список полных путей до файлов xhtml с разметкой
-        Files.walk(Paths.get("D:\\Downloads\\RNC_million\\RNC_million\\sample_ar\\TEXTS"))
+        Files.walk(Paths.get("TEXTS"))
                 .filter(Files::isRegularFile)
                 .forEach((file -> {
                     texts.add(file.toString());
@@ -49,10 +49,6 @@ public class JMorfSdkExample {
         AtomicInteger allFormsMorphAccuracy = new AtomicInteger(); // в словаре есть форма с подходящими морфологическими хар-ками
         AtomicBoolean isAdded = new AtomicBoolean(false);
         AtomicInteger tryNumber = new AtomicInteger(); // учёт первой проверенной формы
-
-        Instant start;
-        Instant finish;
-        long elapsed = 0;
 
         HashSet<Form> set;
 
@@ -82,9 +78,7 @@ public class JMorfSdkExample {
                                             if (word.getNodeType() != Node.TEXT_NODE && word.getNodeName().equals("w")) {
                                                 wordCount.getAndIncrement();
                                                 NodeList wordProps = word.getChildNodes();
-                                                start = Instant.now();
-                                                // Получаем одну из харакатеристик для словоформы
-                                                set = new HashSet<>(jMorfSdk.getOmoForms(word.getTextContent().toLowerCase(Locale.ROOT).replaceAll("[` ]", "")));
+                                                var forms = jMorfSdk.getOmoForms(word.getTextContent().toLowerCase(Locale.ROOT).replaceAll("[` ]", ""));
                                                 for (int n = 0; n < wordProps.getLength(); n++) {
                                                     Node characteristics = wordProps.item(n);
                                                     if (isAdded.get()) {
@@ -93,21 +87,17 @@ public class JMorfSdkExample {
                                                     if (characteristics.getNodeType() != Node.TEXT_NODE && characteristics.getNodeName().equals("ana")) {
                                                         if (jMorfSdk.isFormExistsInDictionary(word.getTextContent().toLowerCase(Locale.ROOT).replaceAll("[` ]", ""))) {
                                                             intKnown.getAndIncrement();
-                                                            set.forEach((form) -> {
-                                                                if (!isAdded.get()) {
-                                                                    // Проверяем соотвествие начальной формы из корпуса и из библиотеки
-                                                                    if (Objects.equals(characteristics.getAttributes().getNamedItem("lex").getNodeValue().toLowerCase(Locale.ROOT).replaceAll("ё", "е"), form.getInitialForm().getInitialFormString().replaceAll("ё", "е"))) {
-                                                                        accuracy.getAndIncrement();
-                                                                        isAdded.set(true);
-                                                                    }
+                                                            if (!forms.isEmpty()) {
+                                                                if (Objects.equals(characteristics.getAttributes().getNamedItem("lex").getNodeValue().toLowerCase(Locale.ROOT).replaceAll("ё", "е"), forms.get(0).getInitialForm().getInitialFormString().replaceAll("ё", "е"))) {
+                                                                    accuracy.getAndIncrement();
                                                                 }
-                                                            });
+                                                            }
 
                                                             final String[] tag = {""};
 
                                                             isAdded.set(false);
 
-                                                            jMorfSdk.getOmoForms(word.getTextContent().toLowerCase(Locale.ROOT).replaceAll("[` ]", "")).forEach((form) -> {
+                                                            forms.forEach((form) -> {
                                                                 if (!isAdded.get()) {
                                                                     isAdded.set(true);
                                                                     // Переводим список морфологических характеристик из библиотеки с стандарт НКРЯ
@@ -201,8 +191,6 @@ public class JMorfSdkExample {
                                                         isAdded.set(true);
                                                     }
                                                 }
-                                                finish = Instant.now();
-                                                elapsed += Duration.between(start, finish).toMillis();
                                                 isAdded.set(false);
                                             }
                                         }
@@ -223,7 +211,6 @@ public class JMorfSdkExample {
             System.out.println("Точность начальных форм: " + accuracy.doubleValue()/intKnown.doubleValue());
             System.out.println("Точность определения характеристик первой формы: " + morphAccuracy.doubleValue()/intKnown.doubleValue());
             System.out.println("Точность определения характеристик всех форм: " + allFormsMorphAccuracy.doubleValue()/intKnown.doubleValue());
-            System.out.println("Затраченное время: " + (double)elapsed/1000 + " секунд");
 
         } catch (ParserConfigurationException | SAXException | IOException ex) {
             ex.printStackTrace(System.out);
